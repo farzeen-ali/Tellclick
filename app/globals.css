@@ -1,26 +1,721 @@
 @import "tailwindcss";
 
+/* Enables `dark:` utility variants, scoped to the site's own theme toggle
+   (the `data-theme="dark"` attribute set on <html>) rather than Tailwind's
+   default `prefers-color-scheme` media query — matching how this project's
+   dark mode already works (ThemeProvider + the blocking init script in
+   app/layout.tsx). Only add `dark:` classes to elements that are currently
+   hardcoded to a constant light-mode-only colour (bg-pale, text-charcoal,
+   bg-white, etc.) sitting on a surface that SHOULD flip with the theme —
+   never to the deliberately theme-constant brand chrome (navy/charcoal
+   navbar, footer, buttons) called out in the palette comment below. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Tellclick palette — enterprise technology / IT infrastructure
+     look: deep navy, clean white, a restrained professional blue accent.
+     Navy/navy-2/pale/charcoal/mist/sage are deliberately CONSTANT (not
+     theme-adaptive): they are the brand's navy/white identity and should
+     read the same whether the visitor is in light or dark site-theme. */
+  --color-navy: #10263a;
+  --color-navy-2: #173a52;
+  --color-white: #f7fbfc;
+  /* Primary technology accent — a restrained, professional blue (not a
+     neon/cyberpunk cyan). Drives selection colour, focus rings, links,
+     eyebrows and small accents across the site. */
+  --color-teal: #1b5e75;
+  --color-pale: #eef7fa;
+  /* Light blue accent for small marks (dots, underlines, highlights) that
+     sit on top of the dark navy chrome sections. */
+  --color-maple: #7c5ce0;
+  /* Always-constant dark fill for solid button/CTA punches (bubble hover
+     fills, primary buttons) — the same deep navy as --color-navy, so
+     primary CTAs read as unmistakably on-brand in both themes. */
+  --color-charcoal: #10263a;
+  /* Always-constant light fill for the inverse button's subtle hover
+     bubble and other light accents. */
+  --color-mist: #e3eef2;
+  /* Muted slate-blue for secondary elements — tags, small accents, hover
+     states — a step lighter than the brand's dark section colour. */
+  --color-sage: #c9d9cf;
+
+  /* Reading-surface palette — page background, card surfaces, body text and
+     hairline borders. These stay theme-adaptive; values are re-declared
+     under [data-theme="dark"] below. Light mode: clean white/off-white
+     backgrounds with deep-navy typography, per the enterprise brief. */
+  --color-paper: #ffffff;
+  --color-surface: #f5fafc;
+  --color-ink: #0f2638;
+  --color-ink-soft: #2c4859;
+  --color-ink-faint: #3b5a6c;
+  --color-hairline: rgba(15, 38, 56, 0.2);
+  --color-hairline-soft: rgba(15, 38, 56, 0.1);
+  /* Accent used for small marks/eyebrows on the page surface — the same
+     professional blue as --color-teal. Needs its own lighter value in
+     dark mode since the light-mode blue would be too dim on a dark page. */
+  --color-cube-tint: #10263a;
+  --color-accent: #1b5e75;
+  /* Tertiary section background (currently authored as bg-tint) — a
+     subtle light-grey/blue surface for alternating sections, a flat
+     pre-blended token rather than an opacity modifier so dark mode gets a
+     subtle dark elevation instead of the wash turning into a bright
+     grey slab. */
+  --color-tint: #eef5f8;
+
+  /* Tellclick Technology Color System — an original neon-on-navy accent
+     language layered on top of the existing navy/white identity above
+     (never replacing it). Deliberately NOT HUMAIN's yellow, and used as a
+     CONTROLLED system rather than everywhere: each accent is assigned a
+     meaning and stays mostly confined to it —
+       cyan    -> technology / infrastructure (Hero, Capabilities index 1/2)
+       violet  -> intelligence / AI (Ketrivo, Progression's AI stage)
+       coral   -> automation / transformation (automation-themed cards)
+       lime    -> a very sparing digital highlight (single small marks only)
+     These are theme-CONSTANT (like navy/pale) — they read the same in
+     light and dark site-theme, since they're brand accents, not surface
+     colours. Registered as full Tailwind color tokens below so `/NN`
+     opacity utilities (bg-cyan/10, text-violet/80, border-coral/30, …)
+     work everywhere out of the box. */
+  --color-cyan: #2b7f99;
+  --color-violet: #7e63d8;
+  --color-coral: #a64fc8;
+  --color-lime: #a78bfa;
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-editorial: cubic-bezier(0.65, 0, 0.35, 1);
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --color-navy: #0a1a29;
+  --color-navy-2: #102b3f;
+  --color-charcoal: #2a5c74;
+  --color-pale: #e6f3f7;
+  --color-maple: #b9a2f7;
+  --color-cyan: #8fd0e6;
+  --color-violet: #c1aef5;
+  --color-coral: #d9a8f0;
+  --color-lime: #cdb9ff;
+  --color-paper: #0b1a28;
+  --color-surface: #112a3c;
+  --color-ink: #e6f3f7;
+  --color-ink-soft: #afc7d1;
+  --color-ink-faint: #7f9ba8;
+  --color-hairline: rgba(189, 232, 246, 0.16);
+  --color-hairline-soft: rgba(189, 232, 246, 0.08);
+  --color-accent: #8fd0e6;
+  --color-cube-tint: #8fd0e6;
+  --color-tint: #0e2132;
+
+  color-scheme: dark;
 }
 
 @theme inline {
+  --color-navy: var(--color-navy);
+  --color-navy-2: var(--color-navy-2);
+  --color-paper: var(--color-paper);
+  --color-white: var(--color-white);
+  --color-surface: var(--color-surface);
+  --color-teal: var(--color-teal);
+  --color-accent: var(--color-accent);
+  --color-tint: var(--color-tint);
+  --color-pale: var(--color-pale);
+  --color-maple: var(--color-maple);
+  --color-charcoal: var(--color-charcoal);
+  --color-mist: var(--color-mist);
+  --color-sage: var(--color-sage);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-hairline: var(--color-hairline);
+  --color-hairline-soft: var(--color-hairline-soft);
+  --color-cyan: var(--color-cyan);
+  --color-violet: var(--color-violet);
+  --color-coral: var(--color-coral);
+  --color-lime: var(--color-lime);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight Variable", "Inter Variable", ui-sans-serif, sans-serif;
+
+  --container-page: 1360px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: auto;
 }
 
 body {
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+::selection {
+  background: var(--color-teal);
+  color: var(--color-white);
+}
+
+/* Utility: editorial oversized headline stack */
+.font-display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, sans-serif;
+}
+
+/* Focus states — always visible, never suppressed */
+:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Reduced motion: disable non-essential motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Horizontal card rows. pan-y keeps vertical page scrolling, while
+   useHorizontalSwipe() performs the horizontal pan (native pan-x is
+   disabled on purpose so it cannot fight that handler or be swallowed by
+   the browser back-gesture / a clipped body). */
+.touch-carousel {
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (pointer: fine) {
+  .touch-carousel {
+    cursor: grab;
+  }
+}
+
+/* Flip cards only on devices that actually hover. A sticky :hover on
+   touch rotates the card mid-gesture and cancels the swipe. */
+.flip-inner:focus-visible {
+  transform: rotateY(180deg);
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .flip-inner {
+    transform: rotateY(180deg);
+  }
+}
+@media (pointer: coarse) {
+  .touch-carousel > [data-carousel-card] {
+    scroll-snap-stop: always;
+  }
+}
+
+/* Enterprise Environments marquee — a pure-CSS loop instead of a JS/GSAP
+   pixel-width tween. Each row renders its content twice back to back, and
+   translating exactly -50% (a percentage of the row's own layout width, not
+   a snapshot in px) always lands the second copy precisely where the first
+   started, however the text reflows (web font swap, resize, zoom). That is
+   what a px-based tween can't guarantee: if scrollWidth is measured before
+   the custom font finishes loading, the animated distance goes stale and
+   the loop visibly stutters/gaps, which is exactly what this replaces.
+   `prefers-reduced-motion` is handled by the global media query above,
+   which already forces every animation-duration to ~0. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation-name: marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Theme toggle icon swap — pure CSS, keyed off the [data-theme] attribute the
+   blocking init script sets before first paint, so the correct icon shows
+   immediately with no client/server hydration mismatch. */
+.theme-icon-dark {
+  display: none;
+}
+[data-theme="dark"] .theme-icon-light {
+  display: none;
+}
+[data-theme="dark"] .theme-icon-dark {
+  display: inline-flex;
+}
+
+/* Animated "energy" border for the photo panels on the Home hero and page
+   intros — a thick ring with one bright arc continuously sweeping around
+   it, like a travelling current/lightning strike. A pure-CSS conic-gradient
+   ring masked down to just the border, so it costs nothing on the JS thread
+   and automatically freezes solid under the reduced-motion rule above
+   (that rule collapses every animation-duration to ~0). */
+@property --border-beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes border-beam-spin {
+  to {
+    --border-beam-angle: 360deg;
+  }
+}
+
+.animated-border-panel {
+  position: relative;
+}
+
+.animated-border-panel::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px;
+  /* Defaults to the professional blue accent; a card can retint the beam by
+     setting --border-beam-color (e.g. var(--color-violet)) inline, which is
+     how the Technology Color System reaches this shared effect. */
+  background: conic-gradient(
+    from var(--border-beam-angle),
+    var(--color-hairline) 0deg,
+    var(--color-hairline) 260deg,
+    var(--border-beam-color, var(--color-accent)) 288deg,
+    #f7fbfc 300deg,
+    var(--border-beam-color, var(--color-accent)) 312deg,
+    var(--color-hairline) 340deg,
+    var(--color-hairline) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-beam-spin 4s linear infinite;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Technology Color System — shared visual utilities used across the
+ * redesigned sections (Hero, Progression, SectorSection, Enterprise
+ * Environments, ProofStrip, Capabilities, Ketrivo, CaseStudySlider) so the
+ * neon-on-navy accents, grid textures and edge fades are defined once
+ * rather than re-implemented per component.
+ * ------------------------------------------------------------------- */
+
+/* Gradient headline/number text — three fixed pairings tied to the accent
+   system's meanings (cyan=technology, violet=intelligence, coral=automation)
+   plus one warm navy->cyan pairing for the hero. Used sparingly, on a
+   handful of key words/numbers per page, never whole paragraphs. */
+.text-gradient-cyan {
+  background: linear-gradient(100deg, var(--color-cyan) 0%, #bde8f6 50%, var(--color-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Cyan->violet blend for the Hero headline specifically — the Hero's
+   ambient glows, visual-panel beam and this gradient were all pure cyan,
+   which read as too blue overall; blending in violet balances the two
+   accent colours instead of leaning on cyan alone. */
+.text-gradient-tech {
+  background: linear-gradient(100deg, var(--color-cyan) 0%, #bde8f6 35%, var(--color-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-violet {
+  background: linear-gradient(100deg, var(--color-violet) 0%, #e9e0ff 50%, var(--color-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.text-gradient-coral {
+  background: linear-gradient(100deg, var(--color-coral) 0%, #f3dcfb 50%, var(--color-coral) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Brushed-metal violet: more colour stops than the flat .text-gradient-violet
+   above, alternating deep and pale violet to read as a polished metallic
+   sheen rather than a flat tint — used where a warm accent (coral) would
+   otherwise sit but a cooler, on-brand tone reads better. */
+.text-gradient-violet-metallic {
+  background: linear-gradient(
+    100deg,
+    #5a40b8 0%,
+    #c9b8fa 22%,
+    var(--color-violet) 40%,
+    #efe8ff 52%,
+    var(--color-violet) 64%,
+    #c9b8fa 82%,
+    #5a40b8 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Brushed blue->violet metallic fill for the Experience timeline's era
+   visual panels — same "alternating light/dark stops" trick as the text
+   gradient above, but as a background fill, plus a soft diagonal sheen
+   highlight (::before) and an inner rim light/shadow (::after) so the
+   panel reads as polished metal rather than a flat gradient tint. */
+.metallic-panel {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    #10263a 0%,
+    #1d5670 20%,
+    #3a8aa3 38%,
+    #8cc3d2 60%,
+    #a58df0 80%,
+    #46308f 100%
+  );
+}
+.metallic-panel::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 28% 22%, rgba(247, 251, 252, 0.26), transparent 55%);
+  mix-blend-mode: overlay;
+}
+.metallic-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -14px 26px rgba(0, 0, 0, 0.28);
+}
+
+/* Rounded capsule shell for the Experience timeline's per-era date marker —
+   shape/border/shadow only; the date text inside gets its colour from the
+   existing .text-gradient-tech utility so the two stay in sync with the
+   rest of the Technology Color System. */
+.metallic-date-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-surface);
+  padding: 0.4rem 1.05rem;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -8px rgba(15, 38, 56, 0.3);
+}
+
+/* Solid (fully opaque) navy-tinted card fill for PrinciplesCube's floating
+   panels. These panels sit stacked on top of one another (a large centred
+   card overlapping four smaller corner cards), so a translucent
+   background — bg-navy/[0.035] etc. — would let whatever card sits behind
+   bleed through in the overlap area. color-mix() computes an actually
+   opaque flattened colour instead, so the front card fully occludes the
+   cards behind it while still reading as a light navy tint. Stays
+   theme-adaptive since it mixes the existing --color-navy/--color-surface
+   custom properties at render time. */
+.cube-face {
+  background-color: color-mix(in srgb, var(--color-cube-tint) 11%, var(--color-surface));
+  transition: background-color 300ms;
+}
+.cube-face:hover {
+  background-color: color-mix(in srgb, var(--color-cube-tint) 20%, var(--color-surface));
+}
+
+/* Sky-blue variant of .cube-face for PrinciplesCube's four smaller corner
+   cards, mixing the existing --color-cyan token instead of navy so they
+   read as a lighter, bluer tint than the centred card. Same reasoning as
+   .cube-face applies: color-mix() keeps this fully opaque (not a
+   translucent bg-cyan/[x]) so a corner card never lets a neighbour behind
+   it show through. */
+.cube-face-sky {
+  background-color: color-mix(in srgb, var(--color-cyan) 14%, var(--color-surface));
+  transition: background-color 300ms;
+}
+.cube-face-sky:hover {
+  background-color: color-mix(in srgb, var(--color-cyan) 24%, var(--color-surface));
+}
+
+/* Colour treatment for the site's existing blue photographs/illustrations —
+   the files themselves are unchanged; this only pulls their saturated
+   blue/cyan toward the blue-gray + lavender palette (desaturate, nudge the
+   hue a touch toward violet). In dark mode the pale ones are also dimmed so
+   they sit in the dark surface instead of glaring. */
+.img-bluegray {
+  filter: saturate(0.8) hue-rotate(-14deg);
+}
+[data-theme="dark"] .img-bluegray {
+  filter: saturate(0.7) hue-rotate(-14deg) brightness(0.72);
+}
+
+/* Original blue-gray look for the sector band photo, just a touch brighter
+   (lighter scrim too) so it reads less faded. */
+.img-vivid {
+  filter: saturate(0.9) brightness(1.1) hue-rotate(-14deg);
+}
+[data-theme="dark"] .img-vivid {
+  filter: saturate(0.8) brightness(0.85) hue-rotate(-14deg);
+}
+
+/* Context colours for the rich-blue (dark in dark mode) chrome sections —
+   hero, proof strip, footer, case-study cards etc. The default accent
+   values are tuned for text on light surfaces; inside these sections the
+   same tokens switch to lighter sky/periwinkle values so accent text, dots
+   and glows stay legible and bright against the blue. Also lays a soft
+   blue-to-periwinkle wash over the flat fills so they read as atmosphere,
+   not a single slab. */
+.bg-navy,
+.bg-navy-2,
+.navbar-dark {
+  --color-cyan: #bde8f6;
+  --color-violet: #c9b8fa;
+  --color-coral: #e0b8f5;
+  --color-lime: #d6c4ff;
+  --color-accent: #bde8f6;
+  --color-maple: #b9a2f7;
+}
+.navbar-dark {
+  background-color: #10263a;
+  --color-pale: #eef7fa;
+  --color-navy: #10263a;
+}
+.bg-navy {
+  background-image: linear-gradient(
+    160deg,
+    rgb(58 138 163 / 0.3) 0%,
+    rgb(58 138 163 / 0) 45%,
+    rgb(165 140 240 / 0.16) 100%
+  );
+}
+.bg-navy-2 {
+  background-image: linear-gradient(180deg, rgb(58 138 163 / 0) 0%, rgb(165 140 240 / 0.16) 100%);
+}
+[data-theme="dark"] .bg-navy {
+  background-image: linear-gradient(
+    160deg,
+    rgb(58 138 163 / 0.18) 0%,
+    rgb(58 138 163 / 0) 45%,
+    rgb(165 140 240 / 0.1) 100%
+  );
+}
+[data-theme="dark"] .bg-navy-2 {
+  background-image: linear-gradient(180deg, rgb(58 138 163 / 0) 0%, rgb(165 140 240 / 0.1) 100%);
+}
+
+/* Light mode: the hero / page-intro / band sections take the reference's
+   dusty teal-blue field with deep-navy text (the always-dark navbar is the
+   only dark strip). Dark mode keeps the deep navy chrome above. */
+:root:not([data-theme="dark"]) .bg-navy,
+:root:not([data-theme="dark"]) .bg-navy-2 {
+  --color-pale: #0f2638;
+  --color-cyan: #0f5a73;
+  --color-violet: #5b3fc4;
+  --color-coral: #8a3fb0;
+  --color-lime: #7c5ce0;
+  --color-accent: #0f5a73;
+  --color-maple: #7c5ce0;
+  background-color: #a7cbd3;
+  background-image: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 0.22) 0%,
+    rgb(255 255 255 / 0) 45%,
+    rgb(165 140 240 / 0.14) 100%
+  );
+}
+:root:not([data-theme="dark"]) .bg-navy-2 {
+  background-color: #bad7de;
+}
+/* Case-study cards: a plain, dark steel-blue field in light mode (own colour,
+   distinct from the teal band and the navbar navy), with the light-on-dark
+   text/accent tokens. Dark mode keeps the deep navy card. */
+:root:not([data-theme="dark"]) .case-card {
+  --color-pale: #ffffff;
+  --color-cyan: #bde8f6;
+  --color-violet: #c9b8fa;
+  --color-coral: #e0b8f5;
+  --color-lime: #d6c4ff;
+  --color-accent: #bde8f6;
+  --color-maple: #d9caff;
+  background-color: #36619a;
+  background-image: none;
+  border: 4px solid #10263a;
+}
+@media (min-width: 640px) {
+  :root:not([data-theme="dark"]) .case-card {
+    border-width: 6px;
+  }
+}
+/* Navy frame: keep only the travelling highlight of the border beam, not its
+   resting hairline, so the thick navy border reads as solid. */
+:root:not([data-theme="dark"]) .case-card.animated-border-panel::before {
+  background: conic-gradient(
+    from var(--border-beam-angle),
+    transparent 0deg,
+    transparent 260deg,
+    var(--border-beam-color, var(--color-accent)) 288deg,
+    #ffffff 300deg,
+    var(--border-beam-color, var(--color-accent)) 312deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+}
+:root:not([data-theme="dark"]) .bg-navy .text-gradient-tech,
+:root:not([data-theme="dark"]) .bg-navy-2 .text-gradient-tech {
+  background-image: linear-gradient(100deg, #0f5a73 0%, #1f7a95 40%, #6b4fd0 100%);
+}
+:root:not([data-theme="dark"]) .bg-navy .text-gradient-cyan,
+:root:not([data-theme="dark"]) .bg-navy-2 .text-gradient-cyan {
+  background-image: linear-gradient(100deg, #0f5a73 0%, #1f7a95 50%, #0f5a73 100%);
+}
+:root:not([data-theme="dark"]) .bg-navy .text-gradient-violet,
+:root:not([data-theme="dark"]) .bg-navy-2 .text-gradient-violet,
+:root:not([data-theme="dark"]) .bg-navy .text-gradient-violet-metallic,
+:root:not([data-theme="dark"]) .bg-navy-2 .text-gradient-violet-metallic {
+  background-image: linear-gradient(100deg, #5b3fc4 0%, #8b6cf0 50%, #5b3fc4 100%);
+}
+:root:not([data-theme="dark"]) .bg-navy .text-gradient-coral,
+:root:not([data-theme="dark"]) .bg-navy-2 .text-gradient-coral {
+  background-image: linear-gradient(100deg, #8a3fb0 0%, #b46ad6 50%, #8a3fb0 100%);
+}
+
+/* Hero glass-pane colours (HeroGlass.tsx reads these): white/navy glass on
+   the light-mode teal field, the icy/sand glass on the dark-mode navy. */
+:root {
+  --hg-back-a: #8a9fd6;
+  --hg-back-b: #7388c4;
+  --hg-mid-a: #6a72b8;
+  --hg-mid-b: #5560a8;
+  --hg-mid-c: #444c92;
+  --hg-glow: #9aa4d8;
+  --hg-front-a: #6fb4c8;
+  --hg-front-b: #4f9db5;
+  --hg-front-c: #3f869e;
+  --hg-line-a: #ffffff;
+  --hg-line-b: #ffffff;
+  --hg-line-c: #e4daff;
+  --hg-stroke-back: #cdd8f0;
+  --hg-stroke-front: #bfe3ec;
+  --hg-orbit: #ffffff;
+  --hg-spark: #ffffff;
+  --hg-dot-a: #ffffff;
+  --hg-dot-b: #8161ea;
+}
+:root[data-theme="dark"] {
+  --hg-back-a: #7f96d8;
+  --hg-back-b: #6a80c4;
+  --hg-mid-a: #5f66b8;
+  --hg-mid-b: #4a509f;
+  --hg-mid-c: #39407f;
+  --hg-glow: #8c96d6;
+  --hg-front-a: #58b0c4;
+  --hg-front-b: #3f9ab0;
+  --hg-front-c: #2f8096;
+  --hg-line-a: #c4cde0;
+  --hg-line-b: #c4cde0;
+  --hg-line-c: #e4daff;
+  --hg-stroke-back: #b9c8ec;
+  --hg-stroke-front: #a8d8e4;
+  --hg-orbit: #9fb0d0;
+  --hg-spark: #eeeaf8;
+  --hg-dot-a: #c4cde0;
+  --hg-dot-b: #8fcfc7;
+}
+
+/* Flipped (back) face of the Progression cards: a clear mid-dark blue with the
+   light-on-dark text/accent tokens, same in light and dark mode. */
+.flip-back {
+  background-color: #10263a;
+  --color-pale: #eef7fa;
+  --color-cyan: #bde8f6;
+  --color-violet: #c9b8fa;
+  --color-coral: #e0b8f5;
+  --color-lime: #d6c4ff;
+  --color-accent: #bde8f6;
+  --color-maple: #b9a2f7;
+}
+
+/* Fine technical grid-line backdrop (distinct from the dotted texture used
+   elsewhere) — a low-opacity graph-paper field for dense, data-driven
+   sections. currentColor-driven so it tints per section. */
+.bg-grid-lines {
+  background-image:
+    linear-gradient(currentColor 1px, transparent 1px),
+    linear-gradient(90deg, currentColor 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Horizontal edge fade for full-bleed moving content (marquee rows, the
+   Enterprise Environments data-stream) so rows appear to emerge from and
+   dissolve into the section edges instead of hard-cutting at the viewport. */
+.edge-fade-x {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+/* Soft ambient glow blob — a compositor-cheap (transform/opacity only,
+   no per-frame blur recompute) stand-in for expensive photographic/3D hero
+   art. Colour is set per use via inline style (background) or a modifier
+   class; kept to a handful of instances per page per the "don't overuse
+   glow" rule. */
+.glow-blob {
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+}
+
+/* GSAP reveal helpers — initial states set in CSS so content is present
+   (accessible/SEO-visible) even before JS runs, then animated from these. */
+[data-reveal] {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.gsap-ready [data-reveal] {
+  opacity: 0;
+}
+.no-js [data-reveal],
+.reduced-motion [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Logo ring + "click" wordmark gradient. Deeper teal/violet on light surfaces,
+   lighter on the navy navbar/footer and in dark mode so it stays bright. */
+:root {
+  --logo-c1: #2b9ab8;
+  --logo-c2: #7c5ce0;
+}
+:root[data-theme="dark"],
+.navbar-dark {
+  --logo-c1: #5cc6e2;
+  --logo-c2: #b9a4fb;
+}
+.logo-click {
+  background-image: linear-gradient(100deg, var(--logo-c1), var(--logo-c2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
